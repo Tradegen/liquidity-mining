@@ -55,4 +55,11 @@ interface IReleaseSchedule {
      * @return (uint256) starting timestamp.
      */
     function getStartOfCurrentCycle() external view returns (uint256);
+
+    /**
+     * @dev Returns the amount of rewards available, based on the given timestamp.
+     * @param _lastClaimTime The timestamp of last rewards claim; used for calculating elapsed time.
+     * @return (uint256) number of tokens available.
+     */
+    function availableRewards(uint256 _lastClaimTime) external view returns (uint256);
 }

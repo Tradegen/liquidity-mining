@@ -72,7 +72,7 @@ contract HalveningReleaseSchedule is IReleaseSchedule {
      * @dev Returns the number of tokens unlocked per second in the current cycle.
      * @return (uint256) number of tokens per second.
      */
-    function getCurrentRewardRate() external view override returns (uint256) {
+    function getCurrentRewardRate() public view override returns (uint256) {
         return getRewardRate(getCurrentCycle());
     }
 
@@ -80,7 +80,25 @@ contract HalveningReleaseSchedule is IReleaseSchedule {
      * @dev Returns the starting timestamp of the current cycle.
      * @return (uint256) starting timestamp.
      */
-    function getStartOfCurrentCycle() external view override returns (uint256) {
+    function getStartOfCurrentCycle() public view override returns (uint256) {
         return getStartOfCycle(getCurrentCycle());
+    }
+
+    /**
+     * @dev Returns the amount of rewards available, based on the given timestamp.
+     * @param _lastClaimTime The timestamp of last rewards claim; used for calculating elapsed time.
+     * @return (uint256) number of tokens available.
+     */
+    function availableRewards(uint256 _lastClaimTime) external view override returns (uint256) {
+        if (_lastClaimTime < distributionStartTime) {
+            return 0;
+        }
+
+        // Check for cross-cycle rewards
+        if (_lastClaimTime < getStartOfCurrentCycle()) {
+            return ((getStartOfCurrentCycle().sub(_lastClaimTime)).mul(getCurrentRewardRate().mul(2))).add((block.timestamp.sub(getStartOfCurrentCycle())).mul(getCurrentRewardRate()));
+        }
+        
+        return (block.timestamp.sub(_lastClaimTime)).mul(getCurrentRewardRate());
     }
 }
