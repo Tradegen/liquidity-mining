@@ -17,7 +17,7 @@ contract TestReleaseSchedule is IReleaseSchedule {
 
     uint256 public constant override cycleDuration = 26 weeks;
     uint256 public immutable firstCycleDistribution;
-    uint256 public immutable override distributionStartTime;
+    uint256 public override distributionStartTime;
 
     /* ========== CONSTRUCTOR ========== */
 
@@ -99,5 +99,13 @@ contract TestReleaseSchedule is IReleaseSchedule {
         }
         
         return (block.timestamp.sub(_lastClaimTime)).mul(getCurrentRewardRate());
+    }
+
+    function currentTime() external view returns (uint256) {
+        return block.timestamp;
+    }
+
+    function setDistributionStartTime(uint256 _startTime) external {
+        distributionStartTime = _startTime;
     }
 }

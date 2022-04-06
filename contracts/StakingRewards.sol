@@ -41,10 +41,9 @@ contract StakingRewards is IStakingRewards, ReentrancyGuard, Ownable {
 
     /* ========== CONSTRUCTOR ========== */
 
-    constructor(address _releaseEscrow, address _rewardsToken, address _stakingToken, address _xTGEN) Ownable() {
+    constructor(address _rewardsToken, address _stakingToken, address _xTGEN) Ownable() {
         rewardsToken = IERC20(_rewardsToken);
         stakingToken = IERC20(_stakingToken);
-        releaseEscrow = IReleaseEscrow(_releaseEscrow);
         xTGEN = _xTGEN;
     }
 
@@ -56,7 +55,7 @@ contract StakingRewards is IStakingRewards, ReentrancyGuard, Ownable {
      * @return (uint256) amount of available unclaimed rewards.
      */
     function earned(address account) public view override returns (uint256) {
-        return balanceOf[account].mul(rewardPerTokenStored.sub(userRewardPerTokenPaid[account])).add(rewards[account]);
+        return balanceOf[account].mul(rewardPerTokenStored.sub(userRewardPerTokenPaid[account])).div(1e18).add(rewards[account]);
     }
 
     /* ========== MUTATIVE FUNCTIONS ========== */
@@ -88,33 +87,63 @@ contract StakingRewards is IStakingRewards, ReentrancyGuard, Ownable {
 
     /**
      * @dev Claims available rewards for the user.
-     * @notice Withdraws farm's rewards from escrow contract first, then claims the user's share of those rewards.
      */
     function getReward() public override nonReentrant releaseEscrowIsSet {
+        rewards[msg.sender] = earned(msg.sender);
+        userRewardPerTokenPaid[msg.sender] = rewardPerTokenStored;
+
         _getReward();
+
+        if (totalSupply == 0) {
+            _claimReward();
+        }
     }
 
     /**
      * @dev Withdraws all LP tokens a user has staked.
      */
-    function exit() external override releaseEscrowIsSet {
-        _getReward();
+    function exit() external override releaseEscrowIsSet updateReward(msg.sender) {
         _withdraw(msg.sender, balanceOf[msg.sender]);
     }
 
     /* ========== INTERNAL FUNCTIONS ========== */
 
     /**
+     * @dev Updates available rewards for the contracts and claims user's share of rewards.
+     */
+    function _getReward() internal {
+        uint256 availableRewards = releaseEscrow.withdraw();
+        if (totalSupply == 0) {
+            rewardsToken.safeTransfer(xTGEN, availableRewards);
+        }
+        else {
+            _addReward(availableRewards);
+            _claimReward();
+        }
+    }
+
+    /**
      * @dev Claims available rewards for the user.
      */
-    function _getReward() internal updateReward(msg.sender) {
+    function _claimReward() internal {
         uint256 reward = rewards[msg.sender];
 
         if (reward > 0) {
             rewards[msg.sender] = 0;
-            rewardsToken.safeTransfer(msg.sender, reward);
+            rewardsToken.transfer(msg.sender, reward);
             emit RewardPaid(msg.sender, reward);
         }
+    }
+
+    /**
+     * @dev Updates the available rewards for the StakingRewards contract, based on the release schedule.
+     * @param _reward number of tokens to add to the StakingRewards contract.
+     */
+    function _addReward(uint256 _reward) internal {
+        rewardPerTokenStored = rewardPerTokenStored.add(_reward.mul(1e18).div(totalSupply));
+        totalAvailableRewards = totalAvailableRewards.add(_reward);
+
+        emit RewardAdded(_reward);
     }
 
     function _withdraw(address _user, uint _amount) internal {
@@ -127,20 +156,6 @@ contract StakingRewards is IStakingRewards, ReentrancyGuard, Ownable {
     }
 
     /* ========== RESTRICTED FUNCTIONS ========== */
-
-    /**
-     * @dev Updates the available rewards for the StakingRewards contract, based on the release schedule.
-     * @param _reward number of tokens to add to the StakingRewards contract.
-     */
-    function _addReward(uint256 _reward) internal {
-        if (totalSupply > 0) {
-            rewardPerTokenStored = rewardPerTokenStored.add(_reward.mul(1e18).div(totalSupply));
-        }
-
-        totalAvailableRewards = totalAvailableRewards.add(_reward);
-
-        emit RewardAdded(_reward);
-    }
 
     /**
      * @dev Sets the address of the ReleaseEscrow contract.
@@ -158,6 +173,8 @@ contract StakingRewards is IStakingRewards, ReentrancyGuard, Ownable {
     /* ========== MODIFIERS ========== */
 
     modifier updateReward(address account) {
+        _getReward();
+
         rewards[account] = earned(account);
         userRewardPerTokenPaid[account] = rewardPerTokenStored;
         _;
