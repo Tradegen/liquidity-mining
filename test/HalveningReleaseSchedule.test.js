@@ -111,7 +111,7 @@ describe("HalveningReleaseSchedule", () => {
         const start = await scheduleOld.getStartOfCurrentCycle();
         expect(start).to.equal(startTimeOld + CYCLE_DURATION);
     });
-  });*/
+  });
 
   describe("#availableRewards", () => {
     it("0 total weight in current period and period index is 0", async () => {
@@ -136,5 +136,5 @@ describe("HalveningReleaseSchedule", () => {
       let availableTokens = await scheduleCurrent.availableRewards(current - WEEKS_27);
       expect(availableTokens).to.equal((CYCLE_DURATION * 4) + (ONE_WEEK * 2) - 194);
     });
-  });
+  });*/
 });

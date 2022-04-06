@@ -50,7 +50,7 @@ contract ReleaseEscrow is ReentrancyGuard, IReleaseEscrow {
         rewardToken = IERC20(_rewardToken);
         schedule = IReleaseSchedule(_schedule);
         startTime = IReleaseSchedule(_schedule).distributionStartTime();
-        lastWithdrawalTime = IReleaseSchedule(_schedule).getStartOfCurrentCycle();
+        lastWithdrawalTime = IReleaseSchedule(_schedule).getStartOfCycle(1);
         lifetimeRewards = IReleaseSchedule(_schedule).getTokensForCycle(1).mul(2);
     }
 
@@ -92,17 +92,7 @@ contract ReleaseEscrow is ReentrancyGuard, IReleaseEscrow {
      * @return uint256 Number of tokens claimed.
      */
     function withdraw() external override started onlyBeneficiary nonReentrant returns(uint256) {
-        uint256 startOfCycle = schedule.getStartOfCurrentCycle();
-        uint256 availableTokens = 0;
-
-        // Check for cross-cycle rewards
-        if (lastWithdrawalTime < startOfCycle) {
-            availableTokens = (startOfCycle.sub(lastWithdrawalTime)).mul(schedule.getCurrentRewardRate().mul(2));
-            availableTokens = availableTokens.add((block.timestamp.sub(startOfCycle)).mul(schedule.getCurrentRewardRate()));
-        }
-        else {
-            availableTokens = (block.timestamp.sub(lastWithdrawalTime)).mul(schedule.getCurrentRewardRate());
-        }
+        uint256 availableTokens = schedule.availableRewards(lastWithdrawalTime);
         
         lastWithdrawalTime = block.timestamp;
         distributedRewards = distributedRewards.add(availableTokens);
