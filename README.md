@@ -12,6 +12,12 @@ Under the liquidity mining rewards program, rewards are distributed to LP (liqui
 
 These smart contracts have not been audited or deployed yet.
 
+## Smart Contracts
+
+* HalveningReleaseSchedule - Stores the release schedule for a reward token.
+* ReleaseEscrow - Stores reward tokens to be released according to the HalveningReleaseSchedule.
+* StakingRewards - Handles entering/exiting a liquidity mining position and claiming rewards.
+
 ## Repository Structure
 
 ```
