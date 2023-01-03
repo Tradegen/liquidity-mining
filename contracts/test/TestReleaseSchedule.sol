@@ -2,14 +2,12 @@
 
 pragma solidity ^0.8.3;
 
+// OpenZeppelin.
 import "../openzeppelin-solidity/contracts/SafeMath.sol";
 
+// Inheritance.
 import "../interfaces/IReleaseSchedule.sol";
 
-/**
- * A release schedule with a "halvening" event occuring every 26 weeks.
- * Halvening events last indefinitely.
- */
 contract TestReleaseSchedule is IReleaseSchedule {
     using SafeMath for uint256;
 
@@ -22,7 +20,7 @@ contract TestReleaseSchedule is IReleaseSchedule {
     /* ========== CONSTRUCTOR ========== */
 
     /**
-     * @dev Remove check for start time so test can set start time to a past time.
+     * @notice Remove check for start time so test can set start time to a past time.
      * @param firstCycleDistribution_ Number of tokens to distribute in the first cycle.
      */
     constructor(uint256 firstCycleDistribution_, uint256 startTime_) {
@@ -33,7 +31,7 @@ contract TestReleaseSchedule is IReleaseSchedule {
     /* ========== VIEWS ========== */
 
     /**
-     * @dev Returns the total number of tokens that will be released in the given cycle.
+     * @notice Returns the total number of tokens that will be released in the given cycle.
      * @param _cycleIndex index of the cycle to check.
      * @return (uint256) total number of tokens released during the given cycle.
      */
@@ -42,7 +40,7 @@ contract TestReleaseSchedule is IReleaseSchedule {
     }
 
     /**
-     * @dev Returns the index of the current cycle.
+     * @notice Returns the index of the current cycle.
      * @return (uint256) index of the current cycle.
      */
     function getCurrentCycle() public view override returns (uint256) {
@@ -50,7 +48,7 @@ contract TestReleaseSchedule is IReleaseSchedule {
     }
 
     /**
-     * @dev Returns the starting timestamp of the given cycle.
+     * @notice Returns the starting timestamp of the given cycle.
      * @param _cycleIndex index of the cycle to check.
      * @return (uint256) starting timestamp of the cycle.
      */
@@ -59,7 +57,7 @@ contract TestReleaseSchedule is IReleaseSchedule {
     }
 
     /**
-     * @dev Given the index of a cycle, returns the number of tokens unlocked per second during the cycle.
+     * @notice Given the index of a cycle, returns the number of tokens unlocked per second during the cycle.
      * @param _cycleIndex index of the cycle to check.
      * @return (uint256) number of tokens per second.
      */
@@ -68,7 +66,7 @@ contract TestReleaseSchedule is IReleaseSchedule {
     }
 
     /**
-     * @dev Returns the number of tokens unlocked per second in the current cycle.
+     * @notice Returns the number of tokens unlocked per second in the current cycle.
      * @return (uint256) number of tokens per second.
      */
     function getCurrentRewardRate() public view override returns (uint256) {
@@ -76,7 +74,7 @@ contract TestReleaseSchedule is IReleaseSchedule {
     }
 
     /**
-     * @dev Returns the starting timestamp of the current cycle.
+     * @notice Returns the starting timestamp of the current cycle.
      * @return (uint256) starting timestamp.
      */
     function getStartOfCurrentCycle() public view override returns (uint256) {
@@ -84,7 +82,7 @@ contract TestReleaseSchedule is IReleaseSchedule {
     }
 
     /**
-     * @dev Returns the amount of rewards available, based on the given timestamp.
+     * @notice Returns the amount of rewards available, based on the given timestamp.
      * @param _lastClaimTime The timestamp of last rewards claim; used for calculating elapsed time.
      * @return (uint256) number of tokens available.
      */
@@ -93,7 +91,7 @@ contract TestReleaseSchedule is IReleaseSchedule {
             return 0;
         }
 
-        // Check for cross-cycle rewards
+        // Check for cross-cycle rewards.
         if (_lastClaimTime < getStartOfCurrentCycle()) {
             return ((getStartOfCurrentCycle().sub(_lastClaimTime)).mul(getCurrentRewardRate().mul(2))).add((block.timestamp.sub(getStartOfCurrentCycle())).mul(getCurrentRewardRate()));
         }

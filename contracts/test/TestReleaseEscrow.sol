@@ -2,12 +2,9 @@
 
 pragma solidity ^0.8.3;
 
-// Inheritance
+// Inheritance.
 import "../ReleaseEscrow.sol";
 
-/**
- * Escrow to release tokens according to a schedule.
- */
 contract TestReleaseEscrow is ReleaseEscrow {
 
     /* ========== CONSTRUCTOR ========== */
