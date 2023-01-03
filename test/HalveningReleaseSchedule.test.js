@@ -35,7 +35,7 @@ describe("HalveningReleaseSchedule", () => {
     await scheduleOld.deployed();
     scheduleOldAddress = scheduleOld.address;
   });
-  /*
+  
   describe("#getCurrentCycle", () => {
     it("current timestamp", async () => {
         const index = await scheduleCurrent.getCurrentCycle();
@@ -136,5 +136,5 @@ describe("HalveningReleaseSchedule", () => {
       let availableTokens = await scheduleCurrent.availableRewards(current - WEEKS_27);
       expect(availableTokens).to.equal((CYCLE_DURATION * 4) + (ONE_WEEK * 2) - 194);
     });
-  });*/
+  });
 });
